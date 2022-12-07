@@ -15,3 +15,21 @@ jobs:
 
       - name: Fix Style
         run: ./vendor/bin/pint -v
+
+      - name: pwsh
+        shell: pwsh
+        id: random-color-generator
+        run: |
+          $isDiff = (git diff).Length -gt 0
+          echo "SELECTED_COLOR=$isDiff" >> $env:GITHUB_OUTPUT
+
+      - name: Get color
+        run: echo "${{ steps.random-color-generator.outputs.SELECTED_COLOR }}"
+
+      - name: Commit report
+        if: ${{ steps.random-color-generator.outputs.SELECTED_COLOR == 'True' }}
+        run: |
+          git config --local user.name "$(git log -n 1 --pretty=format:%an)"
+          git config --local user.email "$(git log -n 1 --pretty=format:%ae)"
+          git commit -am "Commit report"
+          git push
